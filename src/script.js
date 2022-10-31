@@ -76,6 +76,12 @@ renderer.setSize(sizes.width, sizes.height);
 const zoomInButton = document.querySelector('button.zoomIn');
 const zoomOutButton = document.querySelector('button.zoomOut');
 const pressedKeys = {};
+const cursor = {
+  x: 0,
+  y: 0,
+  x_fit: 0,
+  y_fit: 0,
+};
 
 zoomInButton.addEventListener('click', (e) => {
   console.log('ZoomIn +');
@@ -109,10 +115,14 @@ canvas.addEventListener('keyup', (e) => {
 });
 
 const onMouseMove = (e) => {
+  cursor.x = e.clientX;
+  cursor.y = e.clientY;
+
+  cursor.x_fit = clamp(cursor.x, 0, sizes.width) / sizes.width - 0.5; // [-0.5 .. 0.5]
+  cursor.y_fit = clamp(cursor.y, 0, sizes.height) / sizes.height - 0.5; // [-0.5 .. 0.5]
+
   if (pressedKeys['Alt']) {
-    const mouseRange = clipCoord(e.clientX, sizes.width) / screen.width + 0.5; // [0.5 .. 1]
-    fov = mouseRange * 75;
-    camera.zoom = mouseRange;
+    zoomCamera();
   }
 };
 
@@ -127,8 +137,31 @@ canvas.addEventListener('mouseup', () => {
   canvas.removeEventListener('mousemove', onMouseMove);
 });
 
-function clipCoord(val, max) {
-  return Math.min(Math.max(0, val), max);
+/**
+ * If `val` is between [`min`, `max`] return val
+ *
+ * if `val` is lower than `min`, return `min`
+ *
+ * if `val` is larger than `max`, return `max`
+ *
+ * @param {*} val value to clip
+ * @param {*} min min range
+ * @param {*} max max range
+ * @returns the clammped value
+ */
+function clamp(val, min, max) {
+  return Math.min(Math.max(min, val), max);
+}
+
+/**
+ * zoom both prespective and orthographics cameras
+ */
+function zoomCamera() {
+  // prespective camera
+  fov = cursor.x_fit * 75;
+
+  // orthographic camera
+  camera.zoom = cursor.x_fit;
 }
 
 //----------------------------------
