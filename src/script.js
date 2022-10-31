@@ -41,22 +41,21 @@ const zoomAmount = 10;
 const aspectRatio = sizes.width / sizes.height;
 const frustumSize = 1;
 
-let camera = new THREE.PerspectiveCamera(fov, sizes.width / sizes.height);
+let camera = new THREE.PerspectiveCamera(fov, aspectRatio);
 
-camera = new THREE.OrthographicCamera(
-  -frustumSize * aspectRatio,
-  frustumSize * aspectRatio,
-  frustumSize,
-  -frustumSize,
-  0.1,
-  100
-);
+// camera = new THREE.OrthographicCamera(
+//   -frustumSize * aspectRatio,
+//   frustumSize * aspectRatio,
+//   frustumSize,
+//   -frustumSize,
+//   0.1,
+//   100
+// );
 
 camera.zoom = 1;
-camera.position.x = 4;
-camera.position.y = 4;
-camera.position.z = 4;
-camera.lookAt(mesh.position);
+camera.position.x = 3;
+camera.position.y = 3;
+camera.position.z = 3;
 scene.add(camera);
 
 //----------------------------------
@@ -76,6 +75,8 @@ renderer.setSize(sizes.width, sizes.height);
 const zoomInButton = document.querySelector('button.zoomIn');
 const zoomOutButton = document.querySelector('button.zoomOut');
 const pressedKeys = {};
+const mouseEvents = {};
+
 const cursor = {
   x: 0,
   y: 0,
@@ -84,7 +85,7 @@ const cursor = {
 };
 
 zoomInButton.addEventListener('click', (e) => {
-  console.log('ZoomIn +');
+  // console.log('ZoomIn +');
   e.stopPropagation();
   fov -= zoomAmount;
   camera.zoom += 0.1;
@@ -98,7 +99,7 @@ zoomOutButton.addEventListener('click', (e) => {
 });
 
 canvas.addEventListener('keydown', (e) => {
-  console.log('========> event ', e.key, e.code);
+  // console.log('========> event ', e.key, e.code);
   pressedKeys[e.key] = true;
 
   if (e.key === '=') {
@@ -114,27 +115,17 @@ canvas.addEventListener('keyup', (e) => {
   pressedKeys[e.key] = false;
 });
 
-const onMouseMove = (e) => {
-  cursor.x = e.clientX;
-  cursor.y = e.clientY;
-
-  cursor.x_fit = clamp(cursor.x, 0, sizes.width) / sizes.width - 0.5; // [-0.5 .. 0.5]
-  cursor.y_fit = clamp(cursor.y, 0, sizes.height) / sizes.height - 0.5; // [-0.5 .. 0.5]
-
-  if (pressedKeys['Alt']) {
-    zoomCamera();
-  }
-};
-
 const onMouseDown = (e) => {};
+
+canvas.addEventListener('mousemove', onMouseMove);
 
 canvas.addEventListener('mousedown', (event) => {
   onMouseDown(event);
-  canvas.addEventListener('mousemove', onMouseMove);
+  mouseEvents['mousedown'] = true;
 });
 
 canvas.addEventListener('mouseup', () => {
-  canvas.removeEventListener('mousemove', onMouseMove);
+  mouseEvents['mousedown'] = false;
 });
 
 /**
@@ -153,15 +144,35 @@ function clamp(val, min, max) {
   return Math.min(Math.max(min, val), max);
 }
 
+function onMouseMove(e) {
+  mouseEvents['mousemove'] = true;
+
+  cursor.x = e.clientX;
+  cursor.y = e.clientY;
+
+  cursor.x_fit = clamp(cursor.x, 0, sizes.width) / sizes.width - 0.5; // [-0.5 .. 0.5]
+  cursor.y_fit = clamp(cursor.y, 0, sizes.height) / sizes.height - 0.5; // [-0.5 .. 0.5]
+
+  if (pressedKeys['Alt']) {
+    zoomCamera();
+  }
+
+  cameraMove();
+}
+
 /**
  * zoom both prespective and orthographics cameras
  */
 function zoomCamera() {
   // prespective camera
   fov = cursor.x_fit * 75;
-
   // orthographic camera
   camera.zoom = cursor.x_fit;
+}
+
+function cameraMove() {
+  camera.position.x = cursor.x_fit;
+  camera.position.y = -cursor.y_fit;
 }
 
 //----------------------------------
@@ -179,8 +190,9 @@ const tick = () => {
 
   camera.fov = fov;
   camera.updateProjectionMatrix();
+  // camera.lookAt(mesh.position);
 
-  console.log('FOV : ', fov, 'Camera.fov: ', camera.fov);
+  // console.log('FOV : ', fov, 'Camera.fov: ', camera.fov);
 
   // Render
   renderer.render(scene, camera);
