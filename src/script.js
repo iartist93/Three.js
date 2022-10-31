@@ -56,6 +56,7 @@ camera.zoom = 1;
 camera.position.x = 3;
 camera.position.y = 3;
 camera.position.z = 3;
+camera.lookAt(mesh.position);
 scene.add(camera);
 
 //----------------------------------
@@ -122,10 +123,26 @@ canvas.addEventListener('mousemove', onMouseMove);
 canvas.addEventListener('mousedown', (event) => {
   onMouseDown(event);
   mouseEvents['mousedown'] = true;
+  switch (event.which) {
+    case 1:
+      pressedKeys['LMB'] = true;
+      break;
+    case 2:
+      pressedKeys['MMB'] = true;
+      break;
+    case 3:
+      pressedKeys['RMB'] = true;
+      break;
+    default:
+      break;
+  }
 });
 
 canvas.addEventListener('mouseup', () => {
   mouseEvents['mousedown'] = false;
+  pressedKeys['LMB'] = false;
+  pressedKeys['MMB'] = false;
+  pressedKeys['RMB'] = false;
 });
 
 /**
@@ -153,11 +170,12 @@ function onMouseMove(e) {
   cursor.x_fit = clamp(cursor.x, 0, sizes.width) / sizes.width - 0.5; // [-0.5 .. 0.5]
   cursor.y_fit = clamp(cursor.y, 0, sizes.height) / sizes.height - 0.5; // [-0.5 .. 0.5]
 
-  if (pressedKeys['Alt']) {
+  if (pressedKeys['Alt'] && pressedKeys['RMB'] && mouseEvents['mousedown']) {
     zoomCamera();
   }
-
-  cameraMove();
+  if (pressedKeys['Alt'] && pressedKeys['LMB'] && mouseEvents['mousedown']) {
+    cameraMove();
+  }
 }
 
 /**
@@ -165,14 +183,18 @@ function onMouseMove(e) {
  */
 function zoomCamera() {
   // prespective camera
-  fov = cursor.x_fit * 75;
+  // fov = cursor.x_fit * 75;
+
   // orthographic camera
-  camera.zoom = cursor.x_fit;
+  camera.zoom = cursor.x_fit * 4;
 }
 
 function cameraMove() {
-  camera.position.x = cursor.x_fit;
-  camera.position.y = -cursor.y_fit;
+  // full rotation
+  camera.position.x = Math.sin(cursor.x_fit * Math.PI * 2) * 2;
+  camera.position.z = Math.cos(cursor.x_fit * Math.PI * 2) * 2;
+  camera.position.y = -cursor.y_fit * 3;
+  camera.lookAt(mesh.position);
 }
 
 //----------------------------------
@@ -190,9 +212,8 @@ const tick = () => {
 
   camera.fov = fov;
   camera.updateProjectionMatrix();
-  // camera.lookAt(mesh.position);
 
-  // console.log('FOV : ', fov, 'Camera.fov: ', camera.fov);
+  console.log('FOV : ', fov, 'Camera.fov: ', camera.fov);
 
   // Render
   renderer.render(scene, camera);
