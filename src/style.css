@@ -1,0 +1,12 @@
+.controls {
+  width: 500px;
+  height: 200px;
+}
+
+button {
+  /* width: 60px; */
+  height: 40px;
+  font-size: 30px;
+  background: black;
+  color: white;
+}
