@@ -38,14 +38,14 @@ scene.add(mesh);
 
 let fov = 75;
 const zoomAmount = 10;
-const aspectRation = sizes.width / sizes.height;
+const aspectRatio = sizes.width / sizes.height;
 const frustumSize = 1;
 
 let camera = new THREE.PerspectiveCamera(fov, sizes.width / sizes.height);
 
 camera = new THREE.OrthographicCamera(
-  -frustumSize * aspectRation,
-  frustumSize * aspectRation,
+  -frustumSize * aspectRatio,
+  frustumSize * aspectRatio,
   frustumSize,
   -frustumSize,
   0.1,
@@ -75,6 +75,7 @@ renderer.setSize(sizes.width, sizes.height);
 
 const zoomInButton = document.querySelector('button.zoomIn');
 const zoomOutButton = document.querySelector('button.zoomOut');
+const pressedKeys = {};
 
 zoomInButton.addEventListener('click', (e) => {
   console.log('ZoomIn +');
@@ -92,6 +93,8 @@ zoomOutButton.addEventListener('click', (e) => {
 
 canvas.addEventListener('keydown', (e) => {
   console.log('========> event ', e.key, e.code);
+  pressedKeys[e.key] = true;
+
   if (e.key === '=') {
     fov -= zoomAmount;
     camera.zoom += 0.1;
@@ -101,10 +104,16 @@ canvas.addEventListener('keydown', (e) => {
   }
 });
 
+canvas.addEventListener('keyup', (e) => {
+  pressedKeys[e.key] = false;
+});
+
 const onMouseMove = (e) => {
-  const mouseRange = clipCoord(event.clientX, sizes.width) / screen.width + 0.5; // [0.5 .. 1]
-  fov = mouseRange * 75;
-  camera.zoom = mouseRange;
+  if (pressedKeys['Alt']) {
+    const mouseRange = clipCoord(e.clientX, sizes.width) / screen.width + 0.5; // [0.5 .. 1]
+    fov = mouseRange * 75;
+    camera.zoom = mouseRange;
+  }
 };
 
 const onMouseDown = (e) => {};
