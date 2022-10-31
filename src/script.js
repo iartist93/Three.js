@@ -1,5 +1,6 @@
 import './style.css';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 /**
  * Base
@@ -58,6 +59,16 @@ camera.position.y = 3;
 camera.position.z = 3;
 camera.lookAt(mesh.position);
 scene.add(camera);
+
+//----------------------------------
+// Controls
+//----------------------------------
+const controls = new OrbitControls(camera, canvas);
+controls.target.y = 0.2; // look 0.2m above the center
+controls.enableDamping = true;
+// controls.minAzimuthAngle = 0;
+// controls.maxAzimuthAngle = Math.PI / 5;
+// controls.maxPolarAngle = Math.PI / 5;
 
 //----------------------------------
 // Renderer
@@ -214,6 +225,8 @@ const tick = () => {
   camera.updateProjectionMatrix();
 
   console.log('FOV : ', fov, 'Camera.fov: ', camera.fov);
+
+  controls.update();
 
   // Render
   renderer.render(scene, camera);
